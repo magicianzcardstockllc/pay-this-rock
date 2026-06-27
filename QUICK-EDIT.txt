@@ -1,0 +1,17 @@
+PAY THIS ROCK — FINAL CONNECTIONS
+
+Website:
+https://paythisrock.com
+
+Payment page:
+https://buymeacoffee.com/magicianzcardstock
+
+NFC tag URL:
+https://paythisrock.com
+
+Suggested physical label:
+TAP PHONE HERE
+PAY THIS ROCK
+
+Important:
+Do not treat payment collection as ready until the Buy Me a Coffee Stripe payout status changes from Pending to Active/Connected.
