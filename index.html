@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#17181b" />
-  <meta name="description" content="Tap the NFC-tagged rock and choose a payment method to support Pay This Rock." />
+  <meta name="description" content="Tap the NFC-tagged rock, choose what to support, and pay through Buy Me a Coffee, Cash App, Venmo, or PayPal." />
   <title>Pay This Rock</title>
 
   <style>
@@ -208,7 +208,8 @@
     }
 
     .reason {
-      min-height: 78px;
+      appearance: none;
+      min-height: 82px;
       display: grid;
       place-content: center;
       gap: 5px;
@@ -218,13 +219,44 @@
       border-radius: 17px;
       background: rgba(0,0,0,.13);
       color: var(--muted);
+      font: inherit;
       font-size: .78rem;
-      font-weight: 700;
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform .14s ease, border-color .14s ease, background .14s ease;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .reason strong {
       color: var(--text);
       font-size: 1.2rem;
+    }
+
+    .reason:hover {
+      background: rgba(255,255,255,.075);
+    }
+
+    .reason:active {
+      transform: scale(.975);
+    }
+
+    .reason[aria-pressed="true"] {
+      color: var(--text);
+      border-color: var(--accent);
+      background: rgba(242,193,78,.15);
+      box-shadow: inset 0 0 0 1px rgba(242,193,78,.18);
+    }
+
+    .reason-heading {
+      margin-top: 17px !important;
+      color: var(--text) !important;
+      font-size: .88rem;
+      font-weight: 800;
+    }
+
+    .reason-help {
+      margin-top: 3px !important;
+      font-size: .76rem;
     }
 
     .buttons {
@@ -309,6 +341,37 @@
 
     .memo strong { color: var(--text); }
 
+    .copy-note {
+      appearance: none;
+      width: 100%;
+      min-height: 44px;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--text);
+      background: rgba(255,255,255,.07);
+      font: inherit;
+      font-size: .83rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .14s ease, background .14s ease;
+    }
+
+    .copy-note:hover {
+      background: rgba(255,255,255,.11);
+    }
+
+    .copy-note:active {
+      transform: scale(.985);
+    }
+
+    .provider-note {
+      margin: -2px 3px 2px !important;
+      color: #aaa69e !important;
+      font-size: .73rem !important;
+      line-height: 1.35;
+    }
+
     .tiny {
       margin: 17px auto 0;
       max-width: 480px;
@@ -390,14 +453,36 @@
       <h2 id="rockName">Support The Rock</h2>
       <p>Choose how you would like to pay the rock.</p>
 
-      <div class="reasons" aria-label="Potential uses of funds">
-        <div class="reason"><strong>☀️</strong> Weather exposure</div>
-        <div class="reason"><strong>🩹</strong> Tape maintenance</div>
-        <div class="reason"><strong>🪨</strong> Rock retirement</div>
+      <p class="reason-heading">Choose what you are helping with</p>
+      <p class="reason-help">Optional — this changes the suggested payment note.</p>
+
+      <div class="reasons" aria-label="Choose a reason for supporting the rock">
+        <button class="reason" type="button" data-reason="WEATHER EXPOSURE" aria-pressed="false">
+          <strong aria-hidden="true">☀️</strong>
+          Weather exposure
+        </button>
+        <button class="reason" type="button" data-reason="TAPE MAINTENANCE" aria-pressed="false">
+          <strong aria-hidden="true">🩹</strong>
+          Tape maintenance
+        </button>
+        <button class="reason" type="button" data-reason="ROCK RETIREMENT" aria-pressed="false">
+          <strong aria-hidden="true">🪨</strong>
+          Rock retirement
+        </button>
       </div>
 
       <div class="buttons">
-        <a class="pay-button" href="https://cash.app/$MagicianzCardstock"
+        <a class="pay-button" href="https://buymeacoffee.com/magicianzcardstock"
+           target="_blank" rel="noopener noreferrer">
+          <span class="service">
+            <span class="service-icon" aria-hidden="true">☕</span>
+            <span>Pay by card / Buy Me a Coffee</span>
+          </span>
+          <span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <p class="provider-note">Card checkout is handled by Buy Me a Coffee and Stripe.</p>
+
+        <a class="pay-button secondary" href="https://cash.app/$MagicianzCardstock"
            target="_blank" rel="noopener noreferrer">
           <span class="service">
             <span class="service-icon" aria-hidden="true">$</span>
@@ -426,8 +511,11 @@
       </div>
 
       <div class="memo">
-        Suggested payment note: <strong id="memoText">PAY THIS ROCK</strong><br>
-        Payments are completed through the selected third-party provider.
+        Suggested payment note:<br>
+        <strong id="memoText">PAY THIS ROCK</strong>
+        <button class="copy-note" id="copyNoteButton" type="button">
+          Copy payment note
+        </button>
       </div>
 
       <button class="share-button" id="shareButton" type="button">
@@ -466,13 +554,63 @@
     document.getElementById("disclosure").textContent =
       `Novelty voluntary-payment page operated by ${CONFIG.custodianName}. ` +
       `No charitable deduction, investment, ownership interest, or physical product is offered. ` +
-      `Payments are handled by independent third-party payment providers.`;
+      `Payments are handled by Buy Me a Coffee, Stripe, Cash App, Venmo, or PayPal.`;
 
     function showToast(message) {
       toastEl.textContent = message;
       toastEl.classList.add("show");
       window.setTimeout(() => toastEl.classList.remove("show"), 2300);
     }
+
+    const memoTextEl = document.getElementById("memoText");
+    const reasonButtons = Array.from(document.querySelectorAll(".reason"));
+    let selectedReason = "";
+
+    function updatePaymentMemo() {
+      memoTextEl.textContent = selectedReason
+        ? `${CONFIG.paymentMemo} — ${selectedReason}`
+        : CONFIG.paymentMemo;
+    }
+
+    reasonButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const clickedReason = button.dataset.reason || "";
+        const wasSelected = button.getAttribute("aria-pressed") === "true";
+
+        reasonButtons.forEach(item => item.setAttribute("aria-pressed", "false"));
+
+        if (wasSelected) {
+          selectedReason = "";
+          showToast("Payment reason cleared.");
+        } else {
+          selectedReason = clickedReason;
+          button.setAttribute("aria-pressed", "true");
+          showToast(`${button.textContent.trim()} selected.`);
+        }
+
+        updatePaymentMemo();
+      });
+    });
+
+    document.getElementById("copyNoteButton").addEventListener("click", async () => {
+      const note = memoTextEl.textContent.trim();
+
+      try {
+        await navigator.clipboard.writeText(note);
+        showToast("Payment note copied.");
+      } catch (error) {
+        const temporary = document.createElement("textarea");
+        temporary.value = note;
+        temporary.setAttribute("readonly", "");
+        temporary.style.position = "fixed";
+        temporary.style.opacity = "0";
+        document.body.appendChild(temporary);
+        temporary.select();
+        document.execCommand("copy");
+        temporary.remove();
+        showToast("Payment note copied.");
+      }
+    });
 
     document.getElementById("shareButton").addEventListener("click", async () => {
       const shareData = {
