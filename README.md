@@ -1,26 +1,27 @@
-# Pay This Rock
-
-Mobile-first landing page for an NFC-tagged rock.
-
-## Payment flow
-
-NFC tag → `https://paythisrock.com` → Pay This Rock button → Buy Me a Coffee → Stripe payout to MagicianzCardstock LLC.
-
-The payment button currently points to:
-
-`https://buymeacoffee.com/magicianzcardstock`
-
-## Publish on GitHub Pages
-
-1. Upload `index.html` to the root of the public `pay-this-rock` repository.
-2. In repository Settings → Pages, deploy from `main` and `/(root)`.
-3. Set the custom domain to `paythisrock.com`.
-4. Complete the required DNS records with the domain registrar.
-5. Enable HTTPS after GitHub verifies the domain.
-
-## Before attaching the NFC tag
-
-1. Confirm `https://paythisrock.com` opens correctly.
-2. Confirm the Pay This Rock button opens the Buy Me a Coffee page.
-3. Confirm Stripe payout status is active before accepting payments.
-4. Program the NFC tag with `https://paythisrock.com`.
+Pay This Rock
+A mobile-first payment page for an NFC-tagged rock, operated by MagicianzCardstock LLC.
+Included payment options
+Buy Me a Coffee / card checkout: https://buymeacoffee.com/magicianzcardstock
+Cash App: https://cash.app/$MagicianzCardstock
+Venmo: https://www.venmo.com/u/MagicianzCardstockLLC
+PayPal: https://www.paypal.biz/magicianzcardstock
+Functional support reasons
+The following are now real selectable buttons:
+Weather exposure
+Tape maintenance
+Rock retirement
+Selecting one changes the suggested payment note. The visitor can then tap Copy payment note and paste it into the selected payment provider.
+Tapping an already selected reason clears the selection.
+Update the live GitHub Pages site
+Extract this ZIP.
+Open the pay-this-rock repository on GitHub.
+Replace the existing root-level index.html with the included index.html.
+Optionally replace README.md and QUICK-EDIT.txt.
+Commit the changes.
+Wait a few minutes for GitHub Pages to redeploy.
+Test all four payment buttons at https://paythisrock.com.
+NFC URL
+Program the NFC tag with:
+https://paythisrock.com
+Buy Me a Coffee status
+The Buy Me a Coffee button is included. It will only complete checkout once the connected Stripe payout setup is approved and the public Buy Me a Coffee page is available.
