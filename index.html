@@ -372,6 +372,67 @@
       line-height: 1.35;
     }
 
+    .custom-reason-wrap {
+      margin-top: 10px;
+    }
+
+    .custom-reason-label {
+      display: block;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .custom-reason-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 9px;
+    }
+
+    .custom-reason-input {
+      min-height: 48px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    .custom-reason-input::placeholder {
+      color: #9e998f;
+    }
+
+    .custom-reason-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(242,193,78,.12);
+    }
+
+    .custom-reason-button {
+      appearance: none;
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      font: inherit;
+      font-size: .84rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .14s ease, background .14s ease;
+    }
+
+    .custom-reason-button:hover {
+      background: rgba(255,255,255,.12);
+    }
+
+    .custom-reason-button:active {
+      transform: scale(.985);
+    }
+
     .tiny {
       margin: 17px auto 0;
       max-width: 480px;
@@ -453,22 +514,45 @@
       <h2 id="rockName">Support The Rock</h2>
       <p>Choose how you would like to pay the rock.</p>
 
-      <p class="reason-heading">Choose what you are helping with</p>
-      <p class="reason-help">Optional — this changes the suggested payment note.</p>
+      <p class="reason-heading">Choose what you are paying the rock for</p>
+      <p class="reason-help">Optional — pick a purpose or type your own, and the payment note will update.</p>
 
-      <div class="reasons" aria-label="Choose a reason for supporting the rock">
-        <button class="reason" type="button" data-reason="WEATHER EXPOSURE" aria-pressed="false">
-          <strong aria-hidden="true">☀️</strong>
-          Weather exposure
+      <div class="reasons" aria-label="Choose a purpose for paying the rock">
+        <button class="reason" type="button" data-reason="FOR LUCK" aria-pressed="false">
+          <strong aria-hidden="true">🍀</strong>
+          For luck
         </button>
-        <button class="reason" type="button" data-reason="TAPE MAINTENANCE" aria-pressed="false">
-          <strong aria-hidden="true">🩹</strong>
-          Tape maintenance
+        <button class="reason" type="button" data-reason="FOR PROSPERITY" aria-pressed="false">
+          <strong aria-hidden="true">🪙</strong>
+          For prosperity
         </button>
-        <button class="reason" type="button" data-reason="ROCK RETIREMENT" aria-pressed="false">
-          <strong aria-hidden="true">🪨</strong>
-          Rock retirement
+        <button class="reason" type="button" data-reason="FOR WISDOM" aria-pressed="false">
+          <strong aria-hidden="true">🦉</strong>
+          For wisdom
         </button>
+        <button class="reason" type="button" data-reason="FOR COURAGE" aria-pressed="false">
+          <strong aria-hidden="true">🦁</strong>
+          For courage
+        </button>
+        <button class="reason" type="button" data-reason="FOR PROTECTION" aria-pressed="false">
+          <strong aria-hidden="true">🛡️</strong>
+          For protection
+        </button>
+      </div>
+
+      <div class="custom-reason-wrap">
+        <label class="custom-reason-label" for="customReason">Or type your own reason</label>
+        <div class="custom-reason-row">
+          <input
+            id="customReason"
+            class="custom-reason-input"
+            type="text"
+            maxlength="40"
+            placeholder="Example: For wisdom"
+            aria-label="Type your own reason for paying the rock"
+          />
+          <button id="useCustomReason" class="custom-reason-button" type="button">Use mine</button>
+        </div>
       </div>
 
       <div class="buttons">
@@ -564,7 +648,20 @@
 
     const memoTextEl = document.getElementById("memoText");
     const reasonButtons = Array.from(document.querySelectorAll(".reason"));
+    const customReasonInput = document.getElementById("customReason");
+    const useCustomReasonButton = document.getElementById("useCustomReason");
     let selectedReason = "";
+
+    function clearPresetSelections() {
+      reasonButtons.forEach(item => item.setAttribute("aria-pressed", "false"));
+    }
+
+    function formatCustomReason(value) {
+      const trimmed = value.trim().replace(/\s+/g, " ");
+      if (!trimmed) return "";
+      const upper = trimmed.toUpperCase();
+      return upper.startsWith("FOR ") ? trimmed : `For ${trimmed}`;
+    }
 
     function updatePaymentMemo() {
       memoTextEl.textContent = selectedReason
@@ -577,19 +674,41 @@
         const clickedReason = button.dataset.reason || "";
         const wasSelected = button.getAttribute("aria-pressed") === "true";
 
-        reasonButtons.forEach(item => item.setAttribute("aria-pressed", "false"));
+        clearPresetSelections();
 
         if (wasSelected) {
           selectedReason = "";
-          showToast("Payment reason cleared.");
+          showToast("Payment purpose cleared.");
         } else {
           selectedReason = clickedReason;
           button.setAttribute("aria-pressed", "true");
+          customReasonInput.value = "";
           showToast(`${button.textContent.trim()} selected.`);
         }
 
         updatePaymentMemo();
       });
+    });
+
+    useCustomReasonButton.addEventListener("click", () => {
+      const formatted = formatCustomReason(customReasonInput.value);
+
+      if (!formatted) {
+        showToast("Type a custom reason first.");
+        return;
+      }
+
+      clearPresetSelections();
+      selectedReason = formatted.toUpperCase();
+      updatePaymentMemo();
+      showToast("Custom purpose selected.");
+    });
+
+    customReasonInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        useCustomReasonButton.click();
+      }
     });
 
     document.getElementById("copyNoteButton").addEventListener("click", async () => {
